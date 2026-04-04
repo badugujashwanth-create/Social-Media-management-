@@ -56,6 +56,8 @@ Generate Fernet key:
 python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 ```
 
+Never commit real production secrets. The values in `apps/api/.env.example` are placeholders only.
+
 ## Run Locally
 
 1. Start infra:
@@ -113,6 +115,71 @@ Included tests:
 - token encryption/decryption
 - publish job state transitions
 - connector publish (X) with mocked client
+
+## Deploy On Render
+
+API web service:
+
+- Branch: `main`
+- Root Directory: `apps/api`
+- Build Command: `pip install -r requirements.txt`
+- Pre-Deploy Command: `alembic upgrade head`
+- Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+- Health Check Path: `/health`
+
+Required API environment variables:
+
+- `SECRET_KEY`
+- `TOKEN_ENCRYPTION_KEY`
+- `POSTGRES_DSN`
+- `REDIS_URL`
+- `APP_PUBLIC_URL`
+- `API_PUBLIC_URL`
+- `FRONTEND_BASE_URL`
+
+Generate the Fernet key used by `TOKEN_ENCRYPTION_KEY`:
+
+```bash
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+```
+
+Notes:
+
+- Render does not load your local `apps/api/.env`, so you must set the variables above in the Render dashboard.
+- `TOKEN_ENCRYPTION_KEY` is required at application startup. If it is missing, the deploy will boot-fail before serving traffic.
+- If you use Render Postgres, set `POSTGRES_DSN` with the SQLAlchemy driver prefix:
+  `postgresql+psycopg2://...`
+- Set `APP_PUBLIC_URL` and `FRONTEND_BASE_URL` to your frontend URL.
+- Set `API_PUBLIC_URL` to your API URL, for example `https://social-media-management-api.onrender.com`.
+
+Additional services:
+
+- Background worker:
+  - Root Directory: `apps/api`
+  - Build Command: `pip install -r requirements.txt`
+  - Start Command: `rq worker -u $REDIS_URL publish snapshot`
+- Postgres database
+- Redis / Key Value service
+
+Optional variables:
+
+- S3 / object storage for uploads:
+  - `S3_ENDPOINT`
+  - `S3_ACCESS_KEY`
+  - `S3_SECRET_KEY`
+  - `S3_BUCKET`
+  - `S3_REGION`
+  - `S3_PUBLIC_BASE`
+- OAuth providers:
+  - `FACEBOOK_CLIENT_ID`
+  - `FACEBOOK_CLIENT_SECRET`
+  - `FACEBOOK_REDIRECT_URI`
+  - `LINKEDIN_CLIENT_ID`
+  - `LINKEDIN_CLIENT_SECRET`
+  - `LINKEDIN_REDIRECT_URI`
+  - `X_CLIENT_ID`
+  - `X_CLIENT_SECRET`
+  - `X_REDIRECT_URI`
 
 ## Using vendor repos
 
