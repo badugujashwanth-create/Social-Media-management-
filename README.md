@@ -150,7 +150,7 @@ Notes:
 - If you use Render Postgres, set `POSTGRES_DSN` with the SQLAlchemy driver prefix:
   `postgresql+psycopg2://...`
 - Set `APP_PUBLIC_URL` and `FRONTEND_BASE_URL` to your frontend URL.
-- Set `API_PUBLIC_URL` to your API URL, for example `https://social-media-management-api.onrender.com`.
+- Set `API_PUBLIC_URL` to `https://social-media-management-api.onrender.com`.
 
 Additional services:
 
@@ -219,17 +219,17 @@ Warning on Postiz AGPL:
 
 - Meta (Facebook Pages):
   - Create a Meta app in Meta for Developers and add Facebook Login.
-  - Add `http://localhost:8000/oauth/facebook/callback` as a valid OAuth redirect URI.
+  - Add `https://social-media-management-api.onrender.com/oauth/facebook/callback` as a valid OAuth redirect URI.
   - Request permissions for Pages posting (`pages_manage_posts`, `pages_read_engagement`, `pages_show_list`).
   - Put `FACEBOOK_CLIENT_ID` and `FACEBOOK_CLIENT_SECRET` in `apps/api/.env`.
 - LinkedIn:
   - Create an app in LinkedIn Developer Portal.
-  - Add `http://localhost:8000/oauth/linkedin/callback` as an authorized redirect URL.
+  - Add `https://social-media-management-api.onrender.com/oauth/linkedin/callback` as an authorized redirect URL.
   - Enable products/scopes needed for member posting (`w_member_social`, plus OpenID profile scopes).
   - Put `LINKEDIN_CLIENT_ID` and `LINKEDIN_CLIENT_SECRET` in `apps/api/.env`.
 - X:
   - Create an app in X Developer Portal and enable OAuth 2.0.
-  - Add `http://localhost:8000/oauth/x/callback` as callback URL.
+  - Add `https://social-media-management-api.onrender.com/oauth/x/callback` as callback URL.
   - Enable scopes for posting and refresh tokens (`tweet.write`, `users.read`, `offline.access`).
   - Put `X_CLIENT_ID` and `X_CLIENT_SECRET` in `apps/api/.env`.
 
