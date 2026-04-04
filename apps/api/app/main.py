@@ -61,6 +61,18 @@ async def generic_exception_handler(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={'detail': 'Internal server error'})
 
 
+@app.get('/')
+def root():
+    return {
+        'name': 'Social Media Control Center API',
+        'status': 'ok',
+        'health': '/health',
+        'docs': '/docs',
+        'openapi': '/openapi.json',
+        'api_prefix': settings.api_v1_prefix,
+    }
+
+
 @app.get('/health')
 def health():
     return {'status': 'ok'}
