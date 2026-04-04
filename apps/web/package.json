@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "export": "node -e \"const fs=require('fs'); if (!fs.existsSync('out')) { console.error('Missing out/ after next build. Static export is produced by output: \\\"export\\\" in next.config.js.'); process.exit(1); } console.log('Static export ready in out/.');\"",
+    "netlify-build": "npm run build && npm run export",
     "start": "next start",
     "lint": "next lint"
   },

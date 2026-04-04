@@ -116,6 +116,33 @@ Included tests:
 - publish job state transitions
 - connector publish (X) with mocked client
 
+## Deploy On Netlify
+
+Frontend site:
+
+- Branch: `main`
+- Base directory: `apps/web`
+- Build command: `npm run netlify-build`
+- Publish directory: `out`
+- Functions directory: leave blank
+
+Required frontend environment variables:
+
+- `NEXT_PUBLIC_API_BASE`
+
+Optional frontend environment variables:
+
+- `NEXT_PUBLIC_DEV_MODE=false`
+
+Notes:
+
+- A root `netlify.toml` is included, so Netlify can read the build settings from the repository.
+- The frontend is configured for static export in production, and `npm run netlify-build` verifies that `apps/web/out` exists after the build.
+- On Next.js 14, static export is produced by `output: 'export'` in `next.config.js`; the old `next export` CLI command is no longer used.
+- If the site already has a custom Publish directory set in the Netlify UI, change it to `out` when the Base directory is `apps/web`.
+- Set `NEXT_PUBLIC_API_BASE` to your deployed API origin, for example `https://social-media-management-api.onrender.com`.
+- If the Netlify site name you want is already taken, choose any unique temporary site name and rename it later if an available name is found.
+
 ## Deploy On Render
 
 API web service:
