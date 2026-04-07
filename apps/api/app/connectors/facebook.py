@@ -26,7 +26,7 @@ class FacebookConnector(Connector):
                 'client_id': self.settings.facebook_client_id,
                 'redirect_uri': self.settings.facebook_redirect_uri,
                 'state': state,
-                'scope': 'pages_manage_posts,pages_read_engagement,pages_show_list',
+                'scope': self.settings.facebook_oauth_scopes,
                 'response_type': 'code',
             }
         )
@@ -112,7 +112,7 @@ class FacebookConnector(Connector):
             access_token=page_token,
             refresh_token=long_lived_token,
             expires_at=expires_at,
-            scopes='pages_manage_posts,pages_read_engagement,pages_show_list',
+            scopes=self.settings.facebook_oauth_scopes,
             external_account_id=selected_page['id'],
             display_name=selected_page['name'],
             meta_json={

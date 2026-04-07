@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8', extra='ignore')
 
     app_name: str = 'SMCC API'
-    environment: str = 'development'
+    environment: str = Field(default='development', alias='ENVIRONMENT')
     api_v1_prefix: str = '/api/v1'
     secret_key: str = Field(default='change-me', alias='SECRET_KEY')
     token_encryption_key: str = Field(alias='TOKEN_ENCRYPTION_KEY')
@@ -31,14 +31,17 @@ class Settings(BaseSettings):
     facebook_client_id: str | None = Field(default=None, alias='FACEBOOK_CLIENT_ID')
     facebook_client_secret: str | None = Field(default=None, alias='FACEBOOK_CLIENT_SECRET')
     facebook_redirect_uri: str | None = Field(default=None, alias='FACEBOOK_REDIRECT_URI')
+    facebook_oauth_scopes: str = Field(default='pages_manage_posts,pages_read_engagement,pages_show_list', alias='FACEBOOK_OAUTH_SCOPES')
 
     linkedin_client_id: str | None = Field(default=None, alias='LINKEDIN_CLIENT_ID')
     linkedin_client_secret: str | None = Field(default=None, alias='LINKEDIN_CLIENT_SECRET')
     linkedin_redirect_uri: str | None = Field(default=None, alias='LINKEDIN_REDIRECT_URI')
+    linkedin_oauth_scopes: str = Field(default='openid profile w_member_social', alias='LINKEDIN_OAUTH_SCOPES')
 
     x_client_id: str | None = Field(default=None, alias='X_CLIENT_ID')
     x_client_secret: str | None = Field(default=None, alias='X_CLIENT_SECRET')
     x_redirect_uri: str | None = Field(default=None, alias='X_REDIRECT_URI')
+    x_oauth_scopes: str = Field(default='tweet.write users.read offline.access', alias='X_OAUTH_SCOPES')
     ayrshare_api_key: str | None = Field(default=None, alias='AYRSHARE_API_KEY')
 
     app_rate_limit: str = Field(default='120/minute', alias='APP_RATE_LIMIT')

@@ -7,7 +7,7 @@ SMCC is a monorepo MVP that connects social accounts, provides a unified dashboa
 ```
 /smcc
   /apps
-    /web        # Next.js 14 App Router frontend
+    /web        # Next.js 16 App Router frontend
     /api        # FastAPI backend + RQ worker
   /packages
     /shared     # shared platform/status constants (TS + Python)
@@ -17,7 +17,7 @@ SMCC is a monorepo MVP that connects social accounts, provides a unified dashboa
 
 ## Architecture Overview
 
-- Frontend: Next.js 14 + TypeScript + Tailwind + shadcn-style components
+- Frontend: Next.js 16 + TypeScript + Tailwind + shadcn-style components
 - Backend: FastAPI + SQLAlchemy 2.0 + Alembic
 - Database: PostgreSQL
 - Queue: Redis + RQ
@@ -128,7 +128,7 @@ Frontend site:
 
 Required frontend environment variables:
 
-- `NEXT_PUBLIC_API_BASE`
+- `NEXT_PUBLIC_API_BASE` set to your deployed Render API origin, for example `https://your-render-api.onrender.com`
 
 Optional frontend environment variables:
 
@@ -138,7 +138,7 @@ Notes:
 
 - A root `netlify.toml` is included, so Netlify can read the build settings from the repository.
 - The frontend is configured for static export in production, and `npm run netlify-build` verifies that `apps/web/out` exists after the build.
-- On Next.js 14, static export is produced by `output: 'export'` in `next.config.js`; the old `next export` CLI command is no longer used.
+- On Next.js 16, static export is produced by `output: 'export'` in `next.config.js`; the old `next export` CLI command is no longer used.
 - If the site already has a custom Publish directory set in the Netlify UI, change it to `out` when the Base directory is `apps/web`.
 - Set `NEXT_PUBLIC_API_BASE` to your deployed API origin, for example `https://social-media-management-api.onrender.com`.
 - If the Netlify site name you want is already taken, choose any unique temporary site name and rename it later if an available name is found.
@@ -156,6 +156,7 @@ API web service:
 
 Required API environment variables:
 
+- `ENVIRONMENT=production`
 - `SECRET_KEY`
 - `TOKEN_ENCRYPTION_KEY`
 - `POSTGRES_DSN`
@@ -176,8 +177,8 @@ Notes:
 - `TOKEN_ENCRYPTION_KEY` is required at application startup. If it is missing, the deploy will boot-fail before serving traffic.
 - If you use Render Postgres, set `POSTGRES_DSN` with the SQLAlchemy driver prefix:
   `postgresql+psycopg2://...`
-- Set `APP_PUBLIC_URL` and `FRONTEND_BASE_URL` to your frontend URL.
-- Set `API_PUBLIC_URL` to `https://social-media-management-api.onrender.com`.
+- Set `APP_PUBLIC_URL` and `FRONTEND_BASE_URL` to your Netlify frontend URL, for example `https://your-netlify-site.netlify.app`.
+- Set `API_PUBLIC_URL` to your Render API URL, for example `https://your-render-api.onrender.com`.
 
 Additional services:
 
@@ -201,12 +202,15 @@ Optional variables:
   - `FACEBOOK_CLIENT_ID`
   - `FACEBOOK_CLIENT_SECRET`
   - `FACEBOOK_REDIRECT_URI`
+  - `FACEBOOK_OAUTH_SCOPES=pages_manage_posts,pages_read_engagement,pages_show_list`
   - `LINKEDIN_CLIENT_ID`
   - `LINKEDIN_CLIENT_SECRET`
   - `LINKEDIN_REDIRECT_URI`
+  - `LINKEDIN_OAUTH_SCOPES=openid profile w_member_social`
   - `X_CLIENT_ID`
   - `X_CLIENT_SECRET`
   - `X_REDIRECT_URI`
+  - `X_OAUTH_SCOPES=tweet.write users.read offline.access`
 
 ## Using vendor repos
 
@@ -246,18 +250,22 @@ Warning on Postiz AGPL:
 
 - Meta (Facebook Pages):
   - Create a Meta app in Meta for Developers and add Facebook Login.
-  - Add `https://social-media-management-api.onrender.com/oauth/facebook/callback` as a valid OAuth redirect URI.
+  - Add `https://your-render-api.onrender.com/oauth/facebook/callback` as a valid OAuth redirect URI.
   - Request permissions for Pages posting (`pages_manage_posts`, `pages_read_engagement`, `pages_show_list`).
+  - If Facebook shows "Invalid Scopes", the Meta app does not have access to the requested Page permissions yet. Keep the scopes for publishing, but complete Meta app review or test with an app role that is allowed to request them.
   - Put `FACEBOOK_CLIENT_ID` and `FACEBOOK_CLIENT_SECRET` in `apps/api/.env`.
 - LinkedIn:
   - Create an app in LinkedIn Developer Portal.
-  - Add `https://social-media-management-api.onrender.com/oauth/linkedin/callback` as an authorized redirect URL.
+  - Add `https://your-render-api.onrender.com/oauth/linkedin/callback` as an authorized redirect URL.
   - Enable products/scopes needed for member posting (`w_member_social`, plus OpenID profile scopes).
+  - The default LinkedIn scopes are `openid profile w_member_social`. Add `offline_access` to `LINKEDIN_OAUTH_SCOPES` only after the LinkedIn app is approved for refresh tokens.
+  - If LinkedIn redirects to `localhost`, update `LINKEDIN_REDIRECT_URI` in Render and the LinkedIn app dashboard to the deployed Render callback URL.
   - Put `LINKEDIN_CLIENT_ID` and `LINKEDIN_CLIENT_SECRET` in `apps/api/.env`.
 - X:
   - Create an app in X Developer Portal and enable OAuth 2.0.
-  - Add `https://social-media-management-api.onrender.com/oauth/x/callback` as callback URL.
+  - Add `https://your-render-api.onrender.com/oauth/x/callback` as callback URL.
   - Enable scopes for posting and refresh tokens (`tweet.write`, `users.read`, `offline.access`).
+  - If X shows a generic access error, confirm OAuth 2.0 is enabled, the callback URL matches exactly, and the app has the requested scopes.
   - Put `X_CLIENT_ID` and `X_CLIENT_SECRET` in `apps/api/.env`.
 
 ## Connector Plugin Contract

@@ -45,9 +45,47 @@ def _get_connector(platform: str):
     return connector
 
 
+def _platform_redirect_uri(platform: str) -> str | None:
+    return {
+        'facebook': settings.facebook_redirect_uri,
+        'linkedin': settings.linkedin_redirect_uri,
+        'x': settings.x_redirect_uri,
+    }.get(platform)
+
+
+def _production_enabled() -> bool:
+    return settings.environment.lower() in {'production', 'prod'}
+
+
+def _validate_oauth_redirect_uri(platform: str) -> None:
+    if not _production_enabled():
+        return
+
+    redirect_uri = (_platform_redirect_uri(platform) or '').rstrip('/')
+    expected_base = settings.api_public_url.rstrip('/')
+    expected_uri = f'{expected_base}/oauth/{platform}/callback'
+    if not expected_base.startswith('https://') or 'localhost' in expected_base or '127.0.0.1' in expected_base:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='API_PUBLIC_URL must be your deployed HTTPS API URL in production',
+        )
+    if redirect_uri != expected_uri:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f'{platform} redirect URI must be {expected_uri}',
+        )
+
+
 def _make_redirect_url(params: dict[str, str]) -> str:
     base = f"{settings.app_public_url.rstrip('/')}/accounts"
     return f'{base}?{urlencode(params)}'
+
+
+def _make_oauth_error_redirect(platform: str, message: str) -> RedirectResponse:
+    return RedirectResponse(
+        url=_make_redirect_url({'oauth_error': message, 'platform': platform}),
+        status_code=status.HTTP_302_FOUND,
+    )
 
 
 def _generate_pkce_verifier() -> str:
@@ -142,6 +180,7 @@ def _account_out(account: OAuthAccount) -> OAuthAccountOut:
 @router.get('/{platform}/start', response_model=OAuthStartOut)
 def oauth_start(platform: str, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     connector = _get_connector(platform)
+    _validate_oauth_redirect_uri(platform)
     code_verifier = None
     code_challenge = None
     if platform == 'x':
@@ -156,14 +195,28 @@ def oauth_start(platform: str, user: User = Depends(get_current_user), db: Sessi
 @router.get('/{platform}/callback')
 async def oauth_callback(
     platform: str,
-    code: str = Query(...),
-    state: str = Query(...),
+    code: str | None = Query(default=None),
+    state: str | None = Query(default=None),
+    error: str | None = Query(default=None),
+    error_description: str | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
-    connector = _get_connector(platform)
-    state_row = _consume_state(db, platform, state)
-    token_result = await connector.exchange_code_for_token(code, code_verifier=state_row.code_verifier)
-    account = _upsert_account(db, state_row, platform, token_result)
+    if error:
+        return _make_oauth_error_redirect(platform, error_description or error)
+    if not code or not state:
+        return _make_oauth_error_redirect(platform, 'OAuth callback is missing code or state')
+
+    try:
+        connector = _get_connector(platform)
+        state_row = _consume_state(db, platform, state)
+        token_result = await connector.exchange_code_for_token(code, code_verifier=state_row.code_verifier)
+        account = _upsert_account(db, state_row, platform, token_result)
+    except HTTPException as exc:
+        return _make_oauth_error_redirect(platform, str(exc.detail))
+    except ValueError as exc:
+        return _make_oauth_error_redirect(platform, str(exc))
+    except Exception:
+        return _make_oauth_error_redirect(platform, 'OAuth connection failed. Check provider scopes and redirect URI settings.')
 
     params = {'connected': '1', 'platform': platform, 'account_id': str(account.id)}
     candidates = (account.meta_json or {}).get('page_candidates') if platform == 'facebook' else None

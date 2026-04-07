@@ -27,7 +27,7 @@ class LinkedInConnector(Connector):
                 'client_id': self.settings.linkedin_client_id,
                 'redirect_uri': self.settings.linkedin_redirect_uri,
                 'state': state,
-                'scope': 'openid profile w_member_social offline_access',
+                'scope': self.settings.linkedin_oauth_scopes,
             }
         )
         return f'https://www.linkedin.com/oauth/v2/authorization?{params}'
@@ -81,7 +81,7 @@ class LinkedInConnector(Connector):
             access_token=access_token,
             refresh_token=data.get('refresh_token'),
             expires_at=expires_at,
-            scopes=data.get('scope') or 'openid profile w_member_social offline_access',
+            scopes=data.get('scope') or self.settings.linkedin_oauth_scopes,
             external_account_id=member_id,
             display_name=member_name,
             meta_json={'author_urn': author_urn},

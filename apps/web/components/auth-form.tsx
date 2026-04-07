@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { apiFetch, setToken } from '@/lib/api';
+import { apiFetch, getErrorMessage, setToken } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -31,8 +31,8 @@ export function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
       setToken(res.access_token);
       toast.success(mode === 'login' ? 'Logged in' : 'Account created');
       router.push('/dashboard');
-    } catch (e: any) {
-      toast.error(e.message || 'Authentication failed');
+    } catch (e: unknown) {
+      toast.error(getErrorMessage(e, 'Authentication failed'));
     }
   };
 

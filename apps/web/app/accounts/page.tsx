@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, getErrorMessage } from '@/lib/api';
 import { OAuthAccount } from '@/lib/types';
 
 const manualSchema = z.object({
@@ -59,6 +59,11 @@ export default function AccountsPage() {
     if (connected === '1') {
       toast.success('Account connected');
     }
+    const oauthError = params.get('oauth_error');
+    if (oauthError) {
+      const errorPlatform = params.get('platform');
+      toast.error(`${errorPlatform ? `${errorPlatform} OAuth failed` : 'OAuth failed'}: ${oauthError}`);
+    }
     const needsPageSelect = params.get('needs_page_select');
     const platform = params.get('platform');
     const accountId = Number(params.get('account_id') || 0);
@@ -82,8 +87,8 @@ export default function AccountsPage() {
     try {
       const res = await apiFetch<{ redirect_url: string }>(`/oauth/${platform}/start`, { auth: true });
       window.location.href = res.redirect_url;
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (e: unknown) {
+      toast.error(getErrorMessage(e));
     }
   };
 
@@ -93,8 +98,8 @@ export default function AccountsPage() {
       toast.success('Connected account in developer mode');
       reset();
       await loadAccounts();
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (e: unknown) {
+      toast.error(getErrorMessage(e));
     }
   };
 
@@ -114,8 +119,8 @@ export default function AccountsPage() {
       setFacebookPages([]);
       setSelectedPageId('');
       await loadAccounts();
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (e: unknown) {
+      toast.error(getErrorMessage(e));
     } finally {
       setSavingPage(false);
     }
@@ -176,8 +181,8 @@ export default function AccountsPage() {
                     await apiFetch(`/accounts/${a.id}`, { method: 'DELETE', auth: true });
                     toast.success('Disconnected');
                     await loadAccounts();
-                  } catch (e: any) {
-                    toast.error(e.message || 'Disconnect failed');
+                  } catch (e: unknown) {
+                    toast.error(getErrorMessage(e, 'Disconnect failed'));
                   }
                 }}
               >

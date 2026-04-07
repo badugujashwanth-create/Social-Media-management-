@@ -30,6 +30,12 @@ export function clearToken() {
   localStorage.removeItem('smcc_token');
 }
 
+export function getErrorMessage(error: unknown, fallback = 'Request failed'): string {
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === 'string' && error) return error;
+  return fallback;
+}
+
 function trimTrailingSlashes(value: string): string {
   return value.replace(/\/+$/, '');
 }

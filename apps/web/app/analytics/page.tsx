@@ -18,6 +18,7 @@ type FollowerDeltaSeries = {
 };
 
 export default function AnalyticsPage() {
+  const [hasMounted, setHasMounted] = useState(false);
   const [daily, setDaily] = useState<DailyPosts[]>([]);
   const [deltas, setDeltas] = useState<FollowerDeltaSeries[]>([]);
   const [availability, setAvailability] = useState<Availability[]>([]);
@@ -30,6 +31,7 @@ export default function AnalyticsPage() {
   };
 
   useEffect(() => {
+    setHasMounted(true);
     load();
   }, []);
 
@@ -57,15 +59,17 @@ export default function AnalyticsPage() {
         <Card>
           <h2 className='mb-2 text-lg font-semibold'>Daily Posts</h2>
           <div className='h-64'>
-            <ResponsiveContainer width='100%' height='100%'>
-              <BarChart data={daily}>
-                <CartesianGrid strokeDasharray='3 3' />
-                <XAxis dataKey='day' />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey='count' fill='#0ea5e9' />
-              </BarChart>
-            </ResponsiveContainer>
+            {hasMounted && (
+              <ResponsiveContainer width='100%' height='100%'>
+                <BarChart data={daily}>
+                  <CartesianGrid strokeDasharray='3 3' />
+                  <XAxis dataKey='day' />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey='count' fill='#0ea5e9' />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </Card>
 
@@ -85,15 +89,17 @@ export default function AnalyticsPage() {
                     {series.platform} - {series.display_name || `Account #${series.oauth_account_id}`}
                   </p>
                   <div className='h-40'>
-                    <ResponsiveContainer width='100%' height='100%'>
-                      <LineChart data={series.points}>
-                        <CartesianGrid strokeDasharray='3 3' />
-                        <XAxis dataKey='snapshot_at' />
-                        <YAxis />
-                        <Tooltip />
-                        <Line type='monotone' dataKey='delta' stroke='#0284c7' strokeWidth={2} />
-                      </LineChart>
-                    </ResponsiveContainer>
+                    {hasMounted && (
+                      <ResponsiveContainer width='100%' height='100%'>
+                        <LineChart data={series.points}>
+                          <CartesianGrid strokeDasharray='3 3' />
+                          <XAxis dataKey='snapshot_at' />
+                          <YAxis />
+                          <Tooltip />
+                          <Line type='monotone' dataKey='delta' stroke='#0284c7' strokeWidth={2} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    )}
                   </div>
                 </div>
               ))}

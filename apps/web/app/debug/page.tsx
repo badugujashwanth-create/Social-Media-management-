@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { API_BASE, resolveApiUrl } from '@/lib/api';
+import { API_BASE, getErrorMessage, resolveApiUrl } from '@/lib/api';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
@@ -16,8 +16,8 @@ export default function DebugPage() {
       const res = await fetch(url, { cache: 'no-store' });
       const body = await res.json();
       setLastResponse(JSON.stringify(body));
-    } catch (err: any) {
-      setLastError(err?.message || `Ping failed for ${url}`);
+    } catch (err: unknown) {
+      setLastError(getErrorMessage(err, `Ping failed for ${url}`));
       setLastResponse('');
     }
   };

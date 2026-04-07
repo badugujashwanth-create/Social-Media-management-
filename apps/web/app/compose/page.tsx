@@ -11,7 +11,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { apiFetch, getToken, resolveApiUrl } from '@/lib/api';
+import { apiFetch, getErrorMessage, getToken, resolveApiUrl } from '@/lib/api';
 import { OAuthAccount, Post } from '@/lib/types';
 
 const schema = z.object({
@@ -113,8 +113,8 @@ export default function ComposePage() {
       });
       toast.success('Post queued for publishing');
       router.push(`/posts?postId=${res.id}`);
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (e: unknown) {
+      toast.error(getErrorMessage(e));
     }
   };
 
