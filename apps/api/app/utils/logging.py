@@ -1,7 +1,7 @@
 import logging
 import uuid
 from contextvars import ContextVar
-from pythonjsonlogger import jsonlogger
+from pythonjsonlogger.json import JsonFormatter
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi import Request
 
@@ -25,7 +25,7 @@ class RequestIdFilter(logging.Filter):
 
 def configure_logging() -> None:
     handler = logging.StreamHandler()
-    formatter = jsonlogger.JsonFormatter('%(asctime)s %(levelname)s %(name)s %(message)s %(request_id)s')
+    formatter = JsonFormatter('%(asctime)s %(levelname)s %(name)s %(message)s %(request_id)s')
     handler.setFormatter(formatter)
     root = logging.getLogger()
     root.handlers.clear()
